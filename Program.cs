@@ -36,24 +36,31 @@ namespace LGpoc
 
         public static void Game()
         {
-            int gameXOffset = 347;
+            // game-canvas position and size on browser
+            int gameXOffset = 347; // top left corner of the game action screen (scoreboard not included)
             int gameYOffset = 566;
-            int gameXSize = 207;
-            int gameYSize = 174;
-            int playerLine = 788;
-            int enemyLine = 760;
-            int gameOverLine = 681;
-            int blueWarning = 657;
+
+            int gameXSize = 207; // game screen width
+            int gameYSize = 174; // game screen height (player position not included)
+
+            int playerLine = 788; // y coordinate that passes thru the blue | of the players ship when in bottom of the screen
+            int enemyEndLine = 799;
+            int enemyLine = 760; // some line close in front of the player 
+
+            int gameOverLine = 681; // coordinate of the game over phrase (big red text after death)
+            int blueWarning = 657; // blue alert coordinate after confirming signature
 
             bool lockk = true;
             int loops = 0;
             int playerPos = 0;
-            int dangerLine = 0;
+            int dangerLine = -1;
             while (lockk)
             {
                 //if (loops > 10000) lockk = false;
                 CaptureImage image = Capture.Rectangle(new Rectangle(gameXOffset, gameYOffset, gameXSize, gameYSize));
                 CaptureImage player = Capture.Rectangle(new Rectangle(gameXOffset, playerLine, gameXSize, 1));
+                CaptureImage enemyGone = Capture.Rectangle(new Rectangle(gameXOffset, enemyEndLine, gameXSize, 1));
+                CaptureImage closeEnemy = Capture.Rectangle(new Rectangle(gameXOffset, enemyLine, gameXSize, 1));
                 CaptureImage gameOver = Capture.Rectangle(new Rectangle(gameXOffset, gameOverLine, gameXSize, 1));
 
                 if (loops % 100 == 0)
@@ -75,6 +82,8 @@ namespace LGpoc
                         {
                             i = 9999;
                             Thread.Sleep(5000);
+
+                            // red death screen
                             Keyboard.Type(VirtualKeyShort.ENTER);
 
                             Keyboard.Release(VirtualKeyShort.LEFT);
@@ -83,6 +92,7 @@ namespace LGpoc
                             Keyboard.Type(VirtualKeyShort.ENTER);
                             Thread.Sleep(5000);
 
+                            // app interaction
                             Keyboard.Type(VirtualKeyShort.TAB);
                             Thread.Sleep(1000);
                             Keyboard.Type(VirtualKeyShort.TAB);
@@ -91,7 +101,7 @@ namespace LGpoc
                             Thread.Sleep(4000);
 
 
-                            //aviso azul
+                            //blue warning loop
                             bool waitingWarning = true;
                             while (waitingWarning)
                             {
@@ -110,6 +120,7 @@ namespace LGpoc
                             Thread.Sleep(3000);
                             Keyboard.Type(VirtualKeyShort.ENTER);
 
+                            //blue warning gone loop
                             waitingWarning = true;
                             while (waitingWarning)
                             {
@@ -125,19 +136,23 @@ namespace LGpoc
                                 }
                             }
 
+                            // go next
                             Thread.Sleep(3000);
                             Keyboard.Press(VirtualKeyShort.DOWN);
                             Thread.Sleep(100);
                             Keyboard.Release(VirtualKeyShort.DOWN);
 
+                            // start next
                             Thread.Sleep(1000);
                             Keyboard.Type(VirtualKeyShort.ENTER);
                             playerPos = 0;
+                            dangerLine = -1;
                             Thread.Sleep(5000);
                         }
                     }
                 }
 
+                // reset position to the bottom of the screen
                 if (playerPos == 0)
                 {
                     Keyboard.Press(VirtualKeyShort.DOWN);
@@ -146,6 +161,7 @@ namespace LGpoc
                     player = Capture.Rectangle(new Rectangle(gameXOffset, playerLine, gameXSize, 1));
                 }
 
+                // get player x position (and enemy in player line)
                 using (Bitmap playerBmp = new Bitmap(player.Bitmap))
                 {
 
@@ -156,19 +172,64 @@ namespace LGpoc
                         {
                             playerPos = i;
                         }
+                    }
+                }
+
+                // enemyGone = reset dangerLine
+                using (Bitmap enemyBmp = new Bitmap(enemyGone.Bitmap))
+                {
+
+                    for (int i = 0; i < enemyBmp.Width; i++)
+                    {
+                        Color px = enemyBmp.GetPixel(i, 0);
+                        
                         if ((px.R > 220 && px.R < 230) && (px.G > 240 && px.G < 250) && (px.B > 240 && px.B < 250))
                         {
-                            dangerLine = 0;
+                            dangerLine = -1;
                         }
                     }
                 }
 
+                // get "enemy in collision course" x coordinate
+                using (Bitmap enemyBmp = new Bitmap(closeEnemy.Bitmap))
+                {
+                    for (int i = 0; i < enemyBmp.Width; i++)
+                    {
+                        Color px = enemyBmp.GetPixel(i, 0);
+                        if ((px.R > 220 && px.R < 230) && (px.G > 240 && px.G < 250) && (px.B > 240 && px.B < 250))
+                        {
+                            dangerLine = i;
+                            i = 9999;
+                        }
+                        int meteor = 0;
+                        if ((px.R > 120 && px.R < 130) && (px.G > 60 && px.G < 70) && (px.B > 70 && px.B < 80))
+                        {
+                            meteor = i;
+                            if (meteor > playerPos)
+                            {
+                                Keyboard.Release(VirtualKeyShort.LEFT);
+                                Keyboard.Press(VirtualKeyShort.RIGHT);
+
+                            }
+                            else
+                            {
+                                Keyboard.Release(VirtualKeyShort.RIGHT);
+                                Keyboard.Press(VirtualKeyShort.LEFT);
+                            }
+                            i = 9999;
+                            Thread.Sleep(200);
+                        }
+                    }
+                }
+
+                // main game reaction loop
                 using (Bitmap bmp = new Bitmap(image.Bitmap))
                 {
                     for (int i = bmp.Height-1; i > 0; i--)
                     {
                         for (int j = bmp.Width-1; j > 0; j--)
                         {
+                            // "run away from meteor" loop
                             int meteor = 0;
                             Color px = bmp.GetPixel(j, i);
                             if ((px.R > 120 && px.R < 130) && (px.G > 60 && px.G < 70) && (px.B > 70 && px.B < 80))
@@ -176,50 +237,65 @@ namespace LGpoc
                                 meteor = j;
                                 if (meteor > playerPos) 
                                 {
-                                    Keyboard.Release(VirtualKeyShort.RIGHT);
-                                    Keyboard.Press(VirtualKeyShort.LEFT);
+                                    Keyboard.Release(VirtualKeyShort.LEFT);
+                                    Keyboard.Press(VirtualKeyShort.RIGHT);
+                                    
                                 }
                                 else
                                 {
-                                    Keyboard.Release(VirtualKeyShort.LEFT);
-                                    Keyboard.Press(VirtualKeyShort.RIGHT);
+                                    Keyboard.Release(VirtualKeyShort.RIGHT);
+                                    Keyboard.Press(VirtualKeyShort.LEFT);
                                 }
                                 i = -1;
                                 j = -1;
+                                Thread.Sleep(100);
                             }
+                            if (meteor != 0) break;
 
-                            if ((px.R > 220 && px.R < 230) && (px.G > 240 && px.G < 250) && (px.B > 240 && px.B < 250))
+                            // if power up skip 10x10
+                            if (((px.R > 225 && px.R < 240) && (px.G > 65 && px.G < 80) && (px.B > 40 && px.B < 50))
+                                || ((px.R > 165 && px.R < 175) && (px.G > 55 && px.G < 65) && (px.B > 55 && px.B < 65)))
                             {
+                                j -= 12;
+                            }
+                                // "align with enemy ship" loop
+                             if ((px.R > 220 && px.R < 230) && (px.G > 240 && px.G < 250) && (px.B > 240 && px.B < 250))
+                             {
                                 int distx = Math.Abs(j - playerPos);
                                 if (i < playerLine-50)
                                 {
-                                    if (j > playerPos+20) 
+                                    if ((j > playerPos+24)
+                                        && (dangerLine == -1 || dangerLine < playerPos + 15))
                                     {
-                                        System.Diagnostics.Debug.WriteLine("going right");
                                         Keyboard.Release(VirtualKeyShort.LEFT);
                                         Keyboard.Press(VirtualKeyShort.RIGHT); 
                                     }
-                                    else if (j < playerPos-20) 
+                                    else if ((j < playerPos-24)
+                                        && (dangerLine == -1 || dangerLine > playerPos - 15))
                                     {
-                                        System.Diagnostics.Debug.WriteLine("going left");
                                         Keyboard.Release(VirtualKeyShort.RIGHT);
                                         Keyboard.Press(VirtualKeyShort.LEFT);
                                     }
                                     else
                                     {
-                                        System.Diagnostics.Debug.WriteLine("going center");
                                         Keyboard.Release(VirtualKeyShort.LEFT);
                                         Keyboard.Release(VirtualKeyShort.RIGHT);
-                                        if (j > playerPos+4)
+                                        int wait = 20;
+                                        if ((j > playerPos+3)
+                                            && (dangerLine == -1 || dangerLine < playerPos + 12))
                                         {
+                                            
+                                            if (j > playerPos + 8) wait = 50;
                                             Keyboard.Press(VirtualKeyShort.RIGHT);
-                                            Thread.Sleep(1);
+                                            Thread.Sleep(wait);
                                             Keyboard.Release(VirtualKeyShort.RIGHT);
                                         }
-                                        if (j < playerPos-4)
+                                        if ((j < playerPos-3)
+                                            && (dangerLine == -1 || dangerLine > playerPos + 12))
                                         {
+                                            if(j < playerPos - 8) wait = 50;
                                             Keyboard.Press(VirtualKeyShort.LEFT);
-                                            Thread.Sleep(1);
+                                            Thread.Sleep(wait);
                                             Keyboard.Release(VirtualKeyShort.LEFT);
                                         }
                                         if (loops % 2 == 0)
@@ -231,21 +307,33 @@ namespace LGpoc
                                             Keyboard.Release(VirtualKeyShort.SPACE);
                                         }
                                     }
+                                    System.Diagnostics.Debug.WriteLine("Danger: " + dangerLine + ", Player:" + playerPos + ", Enemy:" + j);
 
-                                    i = -1;
-                                    j = -1;
-                                }
-                                else
-                                {
-                                    if (j > playerPos) dangerLine = j-10;
-                                    if (j < playerPos) dangerLine = j+10;
-                                    if (j > playerPos - 3 && j < playerPos + 3)
+                                    if (!((playerPos < dangerLine && dangerLine < j)
+                                        || (playerPos > dangerLine && dangerLine > j)) 
+                                        || dangerLine == -1)
                                     {
-                                        Keyboard.Type(VirtualKeyShort.SHIFT);
+                                        i = -1;
+                                        j = -1;
                                     }
-                                    
+
+                                    if (dangerLine != -1)
+                                    {
+                                        if ((playerPos < dangerLine+10) && (playerPos > dangerLine-4))
+                                        {
+                                            Keyboard.Press(VirtualKeyShort.LEFT);
+                                            Thread.Sleep(30);
+                                            Keyboard.Release(VirtualKeyShort.LEFT);
+                                        } else if ((playerPos > dangerLine - 10) && (playerPos < dangerLine + 4))
+                                        {
+                                            Keyboard.Press(VirtualKeyShort.RIGHT);
+                                            Thread.Sleep(30);
+                                            Keyboard.Release(VirtualKeyShort.RIGHT);
+                                        }
+                                    }
                                 }
                                 //get out of loop
+                                
                             }
                         }
                     }
