@@ -12,7 +12,7 @@ namespace LGpoc
     {
         static void Main(string[] args)
         {
-            var app = FlaUI.Core.Application.Attach(10748);
+            var app = FlaUI.Core.Application.Attach(20448);
             //var app = FlaUI.Core.Application.Launch(@"C:\Program Files\Google\Chrome\Application\chrome.exe");
             using (var automation = new UIA3Automation())
             {
@@ -36,19 +36,21 @@ namespace LGpoc
 
         public static void Game()
         {
-            // game-canvas position and size on browser
-            int gameXOffset = 347; // top left corner of the game action screen (scoreboard not included)
-            int gameYOffset = 566;
+            // game-canvas position and size on browser (sticking to left size)
+            // window width = 990
+            // window height = 1080
+            int gameXOffset = 396; // top left corner of the game action screen (scoreboard not included)
+            int gameYOffset = 650;
 
-            int gameXSize = 207; // game screen width
-            int gameYSize = 174; // game screen height (player position not included)
+            int gameXSize = 243; // game screen width
+            int gameYSize = 248; // game screen height (player position not included)
 
-            int playerLine = 788; // y coordinate that passes thru the blue | of the players ship when in bottom of the screen
-            int enemyEndLine = 799;
-            int enemyLine = 760; // some line close in front of the player 
+            int playerLine = 894; // y coordinate that passes thru the blue | of the players ship when in bottom of the screen
+            int enemyEndLine = 900;
+            int enemyLine = 862; // some line close in front of the player 
 
-            int gameOverLine = 681; // coordinate of the game over phrase (big red text after death)
-            int blueWarning = 657; // blue alert coordinate after confirming signature
+            int gameOverLine = 760; // coordinate of the game over phrase (big red text after death)
+            int blueWarning = 735; // blue alert coordinate after confirming signature
 
             bool lockk = true;
             int loops = 0;
@@ -264,14 +266,14 @@ namespace LGpoc
                                 int distx = Math.Abs(j - playerPos);
                                 if (i < playerLine-50)
                                 {
-                                    if ((j > playerPos+24)
-                                        && (dangerLine == -1 || dangerLine < playerPos + 15))
+                                    if ((j > playerPos+30)
+                                        && (dangerLine == -1 || dangerLine < playerPos + 20))
                                     {
                                         Keyboard.Release(VirtualKeyShort.LEFT);
                                         Keyboard.Press(VirtualKeyShort.RIGHT); 
                                     }
-                                    else if ((j < playerPos-24)
-                                        && (dangerLine == -1 || dangerLine > playerPos - 15))
+                                    else if ((j < playerPos-30)
+                                        && (dangerLine == -1 || dangerLine > playerPos - 20))
                                     {
                                         Keyboard.Release(VirtualKeyShort.RIGHT);
                                         Keyboard.Press(VirtualKeyShort.LEFT);
@@ -281,19 +283,19 @@ namespace LGpoc
                                         Keyboard.Release(VirtualKeyShort.LEFT);
                                         Keyboard.Release(VirtualKeyShort.RIGHT);
                                         int wait = 20;
-                                        if ((j > playerPos+3)
-                                            && (dangerLine == -1 || dangerLine < playerPos + 12))
+                                        if ((j > playerPos+7)
+                                            && (dangerLine == -1 || dangerLine < playerPos + 20))
                                         {
                                             
-                                            if (j > playerPos + 8) wait = 50;
+                                            if (j > playerPos + 14) wait = 50;
                                             Keyboard.Press(VirtualKeyShort.RIGHT);
                                             Thread.Sleep(wait);
                                             Keyboard.Release(VirtualKeyShort.RIGHT);
                                         }
-                                        if ((j < playerPos-3)
-                                            && (dangerLine == -1 || dangerLine > playerPos + 12))
+                                        if ((j < playerPos-7)
+                                            && (dangerLine == -1 || dangerLine < playerPos - 20))
                                         {
-                                            if(j < playerPos - 8) wait = 50;
+                                            if(j < playerPos - 14) wait = 50;
                                             Keyboard.Press(VirtualKeyShort.LEFT);
                                             Thread.Sleep(wait);
                                             Keyboard.Release(VirtualKeyShort.LEFT);
@@ -319,12 +321,12 @@ namespace LGpoc
 
                                     if (dangerLine != -1)
                                     {
-                                        if ((playerPos < dangerLine+10) && (playerPos > dangerLine-4))
+                                        if ((playerPos < dangerLine+15) && (playerPos > dangerLine-6))
                                         {
                                             Keyboard.Press(VirtualKeyShort.LEFT);
                                             Thread.Sleep(30);
                                             Keyboard.Release(VirtualKeyShort.LEFT);
-                                        } else if ((playerPos > dangerLine - 10) && (playerPos < dangerLine + 4))
+                                        } else if ((playerPos > dangerLine - 15) && (playerPos < dangerLine + 6))
                                         {
                                             Keyboard.Press(VirtualKeyShort.RIGHT);
                                             Thread.Sleep(30);
