@@ -13,6 +13,7 @@ namespace LGpoc
     {
         static void Main(string[] args)
         {
+
             var app = FlaUI.Core.Application.Attach(6624);
             //var app = FlaUI.Core.Application.Launch(@"C:\Program Files\Google\Chrome\Application\chrome.exe");
             using (var automation = new UIA3Automation())
@@ -111,6 +112,24 @@ namespace LGpoc
 
                             i = 9999;
                             Thread.Sleep(8000);
+
+                            //lock when in maintenance
+                            int hourNOW = DateTime.UtcNow.Hour;
+
+                            bool areWeThereYet = false;
+
+                            while (!areWeThereYet)
+                            {
+                                if (hourNOW >= 2 && hourNOW < 5)
+                                {
+                                    Thread.Sleep(1000*60*10);
+                                } 
+                                else
+                                {
+                                    areWeThereYet = true;
+                                }
+                            }
+                            
 
                             // red death screen
                             Keyboard.Press(VirtualKeyShort.ENTER);
