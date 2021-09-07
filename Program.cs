@@ -19,6 +19,7 @@ namespace LGpoc
         public static int tabs = 4; // quantity of tabs from url bar to game canvas
         public static int[] playerColor = new int[3] {231, 9, 1};
         public static int chromePID = 16768;
+        public static int ensureGameOver = 10;
 
 
         static void Main(string[] args)
@@ -407,6 +408,9 @@ namespace LGpoc
                     //found red text
                     if ((px.R > 230 && px.R <= 255) && (px.G > 100 && px.G < 120) && (px.B > 100 && px.B < 120))
                     {
+                        ensureGameOver--;
+                        System.Diagnostics.Debug.WriteLine("Game over screen found: " + ensureGameOver);
+                        if (ensureGameOver > 0) break;
                         string x = DateTime.Now.ToString();
                         System.Diagnostics.Debug.WriteLine(loops + ": Game over screen found: " + playerPos);
 
@@ -530,6 +534,7 @@ namespace LGpoc
                         dangerLine = -1;
                         dangerName = "";
                         enemyTime = 0;
+                        ensureGameOver = 10;
                         Thread.Sleep(5000);
                     }
                 }
