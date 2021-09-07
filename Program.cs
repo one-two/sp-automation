@@ -14,15 +14,17 @@ namespace LGpoc
     class Program
     {
         public static string dangerName = "";
-        public static bool printMode = false;
+        public static bool printMode = true;
         public static BreakConfig randomBreak = new(false, 1000, 15); // (active(true/false), probability 1 in x, time of break)
-        public static int tabs = 5; // quantity of tabs from url bar to game canvas
+        public static int tabs = 4; // quantity of tabs from url bar to game canvas
+        public static int[] playerColor = new int[3] {231, 9, 1};
+        public static int chromePID = 16768;
 
 
         static void Main(string[] args)
         {
 
-            var app = FlaUI.Core.Application.Attach(14208);
+            var app = FlaUI.Core.Application.Attach(chromePID);
             using (var automation = new UIA3Automation())
             {
                 var window = app.GetMainWindow(automation);
@@ -67,7 +69,7 @@ namespace LGpoc
             //if (gameXSize > 250) tabs = 16;
             for (int i = 0; i < tabs; i++)
             {
-                Thread.Sleep(50);
+                Thread.Sleep(100);
                 Keyboard.Type(VirtualKeyShort.TAB);
             }
             Thread.Sleep(500);
@@ -378,7 +380,7 @@ namespace LGpoc
                 for (int i = 0; i < playerBmp.Width; i++)
                 {
                     Color px = playerBmp.GetPixel(i, 0);
-                    if ((px.R > 30 && px.R < 40) && (px.G > 80 && px.G < 90) && (px.B > 190 && px.B < 200))
+                    if ((px.R > playerColor[0]-5 && px.R < playerColor[0]+5) && (px.G > playerColor[1]-5 && px.G < playerColor[1]+5) && (px.B > playerColor[2]-5 && px.B < playerColor[2]+5))
                     {
                         playerPos = i;
                         long now = DateTimeOffset.Now.ToUnixTimeMilliseconds();
@@ -391,6 +393,7 @@ namespace LGpoc
                     }
                 }
             }
+            Debug.WriteLine("playerpos : " + playerPos);
         }
 
         private static void GameOverScreenExec(int gameXOffset, int gameYOffset, int gameXSize, int blueWarning, int loops, ref int playerPos, ref int dangerLine, ref long enemyTime, CaptureImage gameOver, BreakConfig randomBreak)
