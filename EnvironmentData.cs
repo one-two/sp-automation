@@ -1,6 +1,7 @@
 ﻿using FlaUI.Core.Capturing;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
@@ -85,10 +86,11 @@ namespace spauto
 
                 // rect on screen limit
                 pxLimit = screenBmp.GetPixel(p.X, p.Y);
-                while (pxLimit.B <= 28)
+                while (pxLimit.B <= 40)
                 {
                     size.X++;
                     pxLimit = screenBmp.GetPixel(p.X + size.X, p.Y);
+                    processedCopy.SetPixel(size.X, p.Y, Color.Crimson);
                 }
                 size.X--;
                 pxLimit = screenBmp.GetPixel(p.X, p.Y);
@@ -118,25 +120,27 @@ namespace spauto
                 // px, py+size.Y 0,max
                 // pX+size.X, py+size.Y max, max
 
+                Debug.WriteLine(p.X + " " + size.X + " " + p.Y + " " + size.Y);
+
                 this.GameXOffset = gameOrigin.X;
-                this.GameYOffset = gameOrigin.Y + (int)Math.Round(gameSize.Y * 0.09);
+                this.GameYOffset = gameOrigin.Y;// + (int)Math.Round(gameSize.Y * 0.09);
                 this.GameXSize = gameSize.X;
-                this.GameYSize = (int)Math.Round(gameSize.Y * 0.80);
+                this.GameYSize = (int)Math.Round(gameSize.Y * 0.85);
                 this.PlayerLine = gameOrigin.Y + (int)Math.Round(gameSize.Y * 0.933);
                 this.EnemyEndLine = gameOrigin.Y + (int)Math.Round(gameSize.Y * 0.96);
                 this.EnemyLine = gameOrigin.Y + (int)Math.Round(gameSize.Y * 0.75);
                 this.GameOverLine = gameOrigin.Y + (int)Math.Round(gameSize.Y * 0.47);
-                this.BlueWarning = gameOrigin.Y + (int)Math.Round(gameSize.Y * 0.44);
+                this.BlueWarning = gameOrigin.X + (int)Math.Round(gameSize.X * 0.5);
                 this.EnemyTime = 0;
                 this.BombArea = gameOrigin.Y + (int)Math.Round(gameSize.Y * 0.8);
                 this.MeteorRight = gameOrigin.X + (int)Math.Round(gameSize.X * 0.96);
-
 
 
                 for (int i = 0; i < GameYSize; i++)
                 {
                     processedCopy.SetPixel(GameXOffset, GameYOffset + i, Color.Cyan);
                     processedCopy.SetPixel(GameXOffset + GameXSize, GameYOffset + i, Color.Cyan);
+                    processedCopy.SetPixel(GameXOffset + GameXSize / 2, BlueWarning + i, Color.Blue);
                 }
 
                 for (int i = 0; i < GameXSize; i++)
@@ -150,7 +154,6 @@ namespace spauto
                     processedCopy.SetPixel(GameXOffset + i, EnemyEndLine, Color.MediumPurple);
                     processedCopy.SetPixel(GameXOffset + i, GameOverLine, Color.Crimson);
                     processedCopy.SetPixel(GameXOffset + i, EnemyLine, Color.MediumPurple);
-                    processedCopy.SetPixel(GameXOffset + i, BlueWarning, Color.Blue);
                 }
 
                 processedCopy.Save(@"c:\temp\screen-detected.png", ImageFormat.Bmp);

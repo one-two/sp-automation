@@ -14,11 +14,11 @@ namespace LGpoc
     class Program
     {
         public static string dangerName = "";
-        public static bool printMode = true;
+        public static bool printMode = false;
         public static BreakConfig randomBreak = new(false, 1000, 15); // (active(true/false), probability 1 in x, time of break)
         public static int tabs = 4; // quantity of tabs from url bar to game canvas
         public static int[] playerColor = new int[3] {231, 9, 1};
-        public static int chromePID = 16768;
+        public static int chromePID = 18648;
         public static int ensureGameOver = 10;
 
 
@@ -60,6 +60,7 @@ namespace LGpoc
 
             long enemyTime = Env.EnemyTime;
 
+            Debug.WriteLine(gameXOffset + " " + gameXSize + " " + meteorRight);
 
             #endregion
 
@@ -74,12 +75,12 @@ namespace LGpoc
                 Keyboard.Type(VirtualKeyShort.TAB);
             }
             Thread.Sleep(500);
-            Keyboard.Type(VirtualKeyShort.ENTER);
-            Thread.Sleep(3000);
+            //Keyboard.Type(VirtualKeyShort.ENTER);
+            //Thread.Sleep(3000);
 
             bool lockk = true;
             int loops = 0;
-            int playerPos = 0;
+            int playerPos = 999;
             int dangerLine = -1;
             long meteorTime = 0;
             dangerName = "";
@@ -97,7 +98,7 @@ namespace LGpoc
                 PrintCapturesToFile(loops, mainGame, player, closeBomb, meteorIncRight, printMode);
 
                 loops++;
-                GameOverScreenExec(gameXOffset, gameYOffset, gameXSize, blueWarning, loops, ref playerPos, ref dangerLine, ref enemyTime, gameOver, randomBreak);
+                GameOverScreenExec(gameXOffset, gameYOffset, gameXSize, gameYSize, blueWarning, loops, ref playerPos, ref dangerLine, ref enemyTime, gameOver, randomBreak);
 
                 // reset position to the bottom of the screen
                 GetPlayerPosition(gameXOffset, gameXSize, playerLine, ref enemyTime, ref playerPos, ref dangerLine, ref player);
@@ -129,7 +130,7 @@ namespace LGpoc
                     Color px = meteorScreenRight.GetPixel(i, j);
                     if ((px.R > 118 && px.R < 126) && (px.G > 64 && px.G < 72) && (px.B > 71 && px.B < 79))
                     {
-                        Debug.WriteLine("Meteor Right found: " + j + " Player: " + playerPos);
+                        //Debug.WriteLine("Meteor Right found: " + j + " Player: " + playerPos);
                         enemyTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() + 1000;
                         dangerName = "Meteor";
                         dangerLine = (int)(mg.Width * 0.35);
@@ -156,7 +157,7 @@ namespace LGpoc
                         Color px = bombScreen.GetPixel(j, i);
                         if ((px.R > 227 && px.R < 233) && (px.G > 145 && px.G < 151) && (px.B > 15 && px.B < 20))
                         {
-                            Debug.WriteLine("Bomb found: " + j + " Player: " + playerPos);
+                            //Debug.WriteLine("Bomb found: " + j + " Player: " + playerPos);
                             enemyTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() + 2000;
                             dangerName = "Bomb";
                             if (playerPos > j)
@@ -172,7 +173,7 @@ namespace LGpoc
                             {
                                 if (playerPos < bombScreen.Width/2)
                                 {
-                                    Debug.WriteLine("Bomb tooclose: " + j + " Player: " + playerPos);
+                                    //Debug.WriteLine("Bomb tooclose: " + j + " Player: " + playerPos);
                                     Keyboard.Release(VirtualKeyShort.LEFT);
                                     Keyboard.Press(VirtualKeyShort.RIGHT);
                                     Thread.Sleep(50);
@@ -215,19 +216,21 @@ namespace LGpoc
                         //}
 
                         // "align with enemy ship" loop
-                        if ((px.R > 220 && px.R < 230) && (px.G > 240 && px.G < 250) && (px.B > 240 && px.B < 250))
+                        if (((px.R > 220 && px.R < 230) && (px.G > 240 && px.G < 250) && (px.B > 240 && px.B < 250))
+                            || (px.R == 255) && (px.G == 255) && (px.B == 255)
+                            )
                         {
                             if (j > dangerLine - (int)(mainGameScreen.Width * 0.05) && j < dangerLine + (int)(mainGameScreen.Width * 0.05))
                             {
                                 continue;
                             }
-                            if ((j > playerPos + (int)(mainGameScreen.Width * 0.20)) // far right
+                            if ((j > playerPos + (int)(mainGameScreen.Width * 0.22)) // far right
                                 && (dangerLine == -1 || dangerLine < playerPos + (int)(mainGameScreen.Width * 0.03))) // danger line on the left
                             {
                                 Keyboard.Release(VirtualKeyShort.LEFT);
                                 Keyboard.Press(VirtualKeyShort.RIGHT);
                             }
-                            else if ((j < playerPos - (int)(mainGameScreen.Width * 0.20)) //far left
+                            else if ((j < playerPos - (int)(mainGameScreen.Width * 0.22)) //far left
                                 && (dangerLine == -1 || dangerLine > playerPos - (int)(mainGameScreen.Width * 0.03))) // danger line on the right
                             {
                                 Keyboard.Release(VirtualKeyShort.RIGHT);
@@ -272,7 +275,7 @@ namespace LGpoc
 
                             if (dangerLine != -1)
                             {
-                                Debug.WriteLine("Danger: " + dangerName + " " + dangerLine + ", Player:" + playerPos + ", Enemy:" + j);
+                                //Debug.WriteLine("Danger: " + dangerName + " " + dangerLine + ", Player:" + playerPos + ", Enemy:" + j);
 
                             }
                             //Debug.WriteLine("Distance%: " + (playerPos-j)/(mainGameScreen.Width+1.0));
@@ -320,7 +323,9 @@ namespace LGpoc
                 for (int i = 1; i < enemyBmp.Width; i++)
                 {
                     Color px = enemyBmp.GetPixel(i, 0);
-                    if ((px.R > 220 && px.R < 230) && (px.G > 240 && px.G < 250) && (px.B > 240 && px.B < 250))
+                    if (((px.R > 220 && px.R < 230) && (px.G > 240 && px.G < 250) && (px.B > 240 && px.B < 250)) 
+                        || (px.R == 255) && (px.G == 255) && (px.B == 255)
+                        )
                     {
                         dangerName = "Ship";
                         dangerLine = i;
@@ -394,10 +399,10 @@ namespace LGpoc
                     }
                 }
             }
-            Debug.WriteLine("playerpos : " + playerPos);
+            //Debug.WriteLine("playerpos : " + playerPos);
         }
 
-        private static void GameOverScreenExec(int gameXOffset, int gameYOffset, int gameXSize, int blueWarning, int loops, ref int playerPos, ref int dangerLine, ref long enemyTime, CaptureImage gameOver, BreakConfig randomBreak)
+        private static void GameOverScreenExec(int gameXOffset, int gameYOffset, int gameXSize, int gameYSize, int blueWarning, int loops, ref int playerPos, ref int dangerLine, ref long enemyTime, CaptureImage gameOver, BreakConfig randomBreak)
         {
             using (Bitmap gameOverBmp = new Bitmap(gameOver.Bitmap))
             {
@@ -412,7 +417,7 @@ namespace LGpoc
                         System.Diagnostics.Debug.WriteLine("Game over screen found: " + ensureGameOver);
                         if (ensureGameOver > 0) break;
                         string x = DateTime.Now.ToString();
-                        System.Diagnostics.Debug.WriteLine(loops + ": Game over screen found: " + playerPos);
+                        //System.Diagnostics.Debug.WriteLine(loops + ": Game over screen found: " + playerPos);
 
                         i = 9999;
                         Thread.Sleep(8000);
@@ -464,7 +469,7 @@ namespace LGpoc
                             }
                             else
                             {
-                                Debug.WriteLine("got no app here");
+                                //Debug.WriteLine("got no app here");
                                 Keyboard.Press(VirtualKeyShort.ENTER);
                                 Thread.Sleep(40);
                                 Keyboard.Release(VirtualKeyShort.ENTER);
@@ -486,20 +491,26 @@ namespace LGpoc
                         long blueEnterTime = DateTimeOffset.Now.AddSeconds(40).ToUnixTimeSeconds();
                         while (waitingWarning)
                         {
-                            Debug.WriteLine("Waiting for blue");
+                            //Debug.WriteLine("Waiting for blue");
                             Thread.Sleep(1000);
                             //307 575
-                            CaptureImage blueWarn = Capture.Rectangle(new Rectangle(gameXOffset, blueWarning, gameXSize, 1));
+                            CaptureImage blueWarn = Capture.Rectangle(new Rectangle(blueWarning, gameYOffset, 1, gameYSize));
                             Bitmap warn = new Bitmap(blueWarn.Bitmap);
-                            Color sample = warn.GetPixel(0, 0);
 
-                            if ((sample.R > 30 && sample.R < 40)
-                                && (sample.G > 20 && sample.G < 30)
-                                && (sample.B > 120 && sample.B < 140))
+                            for (int j = 0; j < warn.Height; j++)
                             {
-                                Debug.WriteLine("got blue!");
-                                waitingWarning = false;
+                                Color sample = warn.GetPixel(0, j);
+
+                                if ((sample.R > 30 && sample.R < 40)
+                                    && (sample.G > 15 && sample.G < 30)
+                                    && (sample.B > 120 && sample.B < 155))
+                                {
+                                    Debug.WriteLine("got blue!");
+                                    waitingWarning = false;
+                                    break;
+                                }
                             }
+                            
                         }
 
                         Thread.Sleep(3000);
@@ -509,16 +520,20 @@ namespace LGpoc
                         waitingWarning = true;
                         while (waitingWarning)
                         {
-                            CaptureImage blueWarn = Capture.Rectangle(new Rectangle(gameXOffset, blueWarning, gameXSize, 1));
+                            CaptureImage blueWarn = Capture.Rectangle(new Rectangle(blueWarning, gameXOffset, 1, gameYSize));
                             Bitmap warn = new Bitmap(blueWarn.Bitmap);
-                            Color sample = warn.GetPixel(0, 0);
+                            
 
-                            if (!((sample.R > 30 && sample.R < 40)
+                            for (int j = 0; j < warn.Height; j++)
+                            {
+                                Color sample = warn.GetPixel(0, j);
+                                if (!((sample.R > 30 && sample.R < 40)
                                 && (sample.G > 20 && sample.G < 30)
                                 && (sample.B > 120 && sample.B < 140)))
-                            {
-                                waitingWarning = false;
-                            }
+                                {
+                                    waitingWarning = false;
+                                }
+                            } 
                         }
 
                         // go next
@@ -549,7 +564,7 @@ namespace LGpoc
 
             while (!areWeThereYet)
             {
-                if (hourNOW >= 2 && hourNOW < 5)
+                if (hourNOW >= 22 && hourNOW < 5)
                 {
                     Thread.Sleep(1000 * 60 * 10);
                 }
